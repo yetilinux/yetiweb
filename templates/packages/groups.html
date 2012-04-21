@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+
+{% block title %}Arch Linux - Package Groups{% if arch %} - {{ arch }}{% endif %}{% endblock %}
+{% block navbarclass %}anb-packages{% endblock %}
+
+{% block content %}
+<div class="box">
+    <h2>Package Groups Overview{% if arch %} - {{ arch }}{% endif %}</h2>
+    <table class="results">
+        <thead>
+            <tr>
+                <th>Arch</th>
+                <th>Group Name</th>
+                <th>Package Count</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for grp in groups %}
+            <tr class="{% cycle 'odd' 'even' %}">
+                <td>{{ grp.arch }}</td>
+                <td><a href="/groups/{{ grp.arch }}/{{ grp.name }}/"
+                        title="Group details for {{ grp.name }}">{{ grp.name }}</a></td>
+                <td>{{ grp.count }}</td>
+                <td>{{ grp.last_update|date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "jquery.tablesorter.min.js" %}"></script>
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".results").tablesorter({widgets: ['zebra'], sortList: [[1,0], [0,0]]});
+});
+</script>
+{% endblock %}

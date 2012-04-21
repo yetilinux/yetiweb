@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% load pgp %}
+
+{% block title %}Arch Linux - Master Signing Keys{% endblock %}
+
+{% block content %}
+<div id="signing-keys" class="box">
+    <h2>Master Signing Keys</h2>
+
+    <p>This page lists the Arch Linux Master Keys. This is a distributed set of
+    keys that are seen as "official" signing keys of the distribution. Each key
+    is held by a different developer, and a revocation certificate for the key
+    is held by a different developer. Thus, no one developer has absolute hold
+    on any sort of absolute, root trust.</p>
+    <p>The {{ keys|length }} key{{ keys|pluralize }} listed below should be
+    regarded as the current set of master keys. They are available on public
+    keyservers and should be signed by the owner of the key.</p>
+
+    <table class="pretty2">
+        <thead>
+            <tr>
+                <th>Master Key</th>
+                <th>Full Fingerprint</th>
+                <th>Owner</th>
+                <th>Owner's Signing Key</th>
+                <th>Revoker</th>
+                <th>Revoker's Signing Key</th>
+                <th>Developer/TU Keys Signed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key in keys %}
+            <tr>
+                <td>{% pgp_key_link key.pgp_key %}</td>
+                <td><tt>{{ key.pgp_key|pgp_fingerprint }}</tt></td>
+                {% with key.owner.userprofile as owner_profile %}
+                <td><a href="{{ owner_profile.get_absolute_url }}">{{ key.owner.get_full_name }}</a></td>
+                <td>{% pgp_key_link owner_profile.pgp_key %}</td>
+                {% endwith %}
+                {% with key.revoker.userprofile as revoker_profile %}
+                <td><a href="{{ revoker_profile.get_absolute_url }}">{{ key.revoker.get_full_name }}</a></td>
+                <td>{% pgp_key_link revoker_profile.pgp_key %}</td>
+                {% endwith %}
+                <td>{{ key.signature_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>The following table shows all active developers and trusted users along
+    with the status of their personal signing key. A 'Yes' indicates that the
+    personal key of the developer is signed by the given master key. A 'No'
+    indicates it has not been signed; however, this does not necessarily mean
+    the key should not be trusted.</p>
+    <p>All official Arch Linux developers and trusted users should have their
+    key signed by at least three master keys if they are responsible for
+    packaging software in the repositories. This is in accordance with the PGP
+    <em>web of trust</em> concept. If a user is willing to marginally trust all
+    of the master keys, three signatures from different master keys will
+    consider a given developer's key as valid. For more information on trust,
+    please consult the
+    <a href="http://www.gnupg.org/gph/en/manual.html">GNU Privacy Handbook</a>
+    and <a href="http://www.gnupg.org/gph/en/manual.html#AEN385">Using trust to
+    validate keys</a>.</p>
+
+    <table class="pretty2" id="key-status">
+        <thead>
+            <tr>
+                <th>Developer</th>
+                <th>PGP Key</th>
+                {% for key in keys %}
+                <th>{{ key.owner.get_full_name }}<br/>
+                {% pgp_key_link key.pgp_key %}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in active_users %}
+            <tr>
+                <th>{{ user.get_full_name }}</th>
+                <td>{% pgp_key_link user.userprofile.pgp_key %}</td>
+                {% spaceless %}{% for key in keys %}
+                {% signature_exists signatures key.pgp_key user.userprofile.pgp_key as signed %}
+                <td class="signed-{{ signed|yesno }}">{{ signed|yesno|capfirst }}</td>
+                {% endfor %}{% endspaceless %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "jquery.tablesorter.min.js" %}"></script>
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#key-status").tablesorter({
+        headers: { 1: { sorter: false } }
+    });
+});
+</script>
+{% endblock %}

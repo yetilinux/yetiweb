@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% load url from future %}
+
+{% block title %}Arch Linux - Visualizations{% endblock %}
+
+{% block content %}
+<div class="box">
+    <h2>Visualization of Package Data</h2>
+
+    <div class="visualize-buttons">
+        <div>
+            <span>Scale Using:</span>
+            <button id="visualize-archrepo-count" class="visualize-archrepo-scaleby active">Package Count</button>
+            <button id="visualize-archrepo-flagged" class="visualize-archrepo-scaleby">Flagged</button>
+            <button id="visualize-archrepo-csize" class="visualize-archrepo-scaleby">Compressed Size</button>
+            <button id="visualize-archrepo-isize" class="visualize-archrepo-scaleby">Installed Size</button>
+        </div>
+        <div>
+            <span>Group By:</span>
+            <button id="visualize-archrepo-repo" class="visualize-archrepo-groupby active">Repository</button>
+            <button id="visualize-archrepo-arch" class="visualize-archrepo-groupby">Architecture</button>
+        </div>
+    </div>
+    <div id="visualize-archrepo" class="visualize-chart"></div>
+</div>
+<div class="box">
+    <h2>Visualization of PGP Master and Signing Keys</h2>
+
+    <div id="visualize-keys" class="visualize-chart"></div>
+</div>
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "d3.v2.min.js" %}"></script>
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript" src="{% static "visualize.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    var orderings = {
+        "repo": { url: "{% url 'visualize-byrepo' %}", color_attr: "repo" },
+        "arch": { url: "{% url 'visualize-byarch' %}", color_attr: "arch" },
+    };
+    packages_treemap("#visualize-archrepo", orderings, "repo");
+    developer_keys("#visualize-keys", "{% url 'visualize-pgp_keys' %}");
+});
+</script>
+{% endblock %}

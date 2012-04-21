@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load package_extras %}
+
+{% block title %}Arch Linux - Flag Package - {{ package.pkgname }} {{ package.full_version }} ({{ package.arch.name }}){% endblock %}
+{% block head %}<meta name="robots" content="noindex"/>{% endblock %}
+{% block navbarclass %}anb-packages{% endblock %}
+
+{% block content %}
+<div id="pkg-flag" class="box">
+    <h2>Flag Package: {{ package.pkgname }} {{ package.full_version }} ({{ package.arch.name }})</h2>
+
+    <p>If you notice a package is out-of-date (i.e., there is a newer
+    <strong>stable</strong> release available), then please notify us using
+    the form below. Do <em>not</em> report bugs via this form!</p>
+
+    <p>Note that the following {{ packages|length }} package{{ packages|pluralize }} will be marked out of date:</p>
+    <ul>
+        {% for pkg in packages %}
+        <li>{% pkg_details_link pkg %} {{ pkg.full_version }} [{{ pkg.repo.name|lower }}] ({{ pkg.arch.name }})</li>
+        {% endfor %}
+    </ul>
+
+    <p>The message box portion of the flag utility is optional, and meant
+    for short messages only. If you need more than 200 characters for your
+    message, then file a bug report, email the maintainer directly, or send
+    an email to the <a href="https://mailman.archlinux.org/mailman/listinfo/arch-general"
+        title="Visit the arch-general mailing list">arch-general mailing list</a>
+    with your additional text.</p>
+
+    <p><strong>Note:</strong> Do <em>not</em> use this facility if the
+    package is broken! The package will be unflagged and the report will be ignored!
+    <a href="https://bugs.archlinux.org/" title="Arch Linux Bugtracker">Use the
+    bugtracker to file a bug</a> instead.</p>
+
+    <p>Please confirm your flag request for {{package.pkgname}}:</p>
+
+    <form id="flag-pkg-form" method="post">{% csrf_token %}
+        <fieldset>
+            {{ form.as_p }}
+        </fieldset>
+        <p><label></label> <input title="Flag {{ package.pkgname }} as out-of-date" type="submit" value="Flag Package" /></p>
+    </form>
+</div>
+{% endblock %}

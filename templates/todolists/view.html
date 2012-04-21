@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% load package_extras %}
+
+{% block title %}Arch Linux - Todo: {{ list.name }}{% endblock %}
+
+{% block content %}
+<div id="dev-todo-details" class="box">
+
+    <h2>Todo List: {{ list.name }}</h2>
+
+    <ul class="admin-actions">
+        {% if perms.main.delete_todolist %}
+        <li><a href="/todo/delete/{{list.id}}/"
+            title="Delete this todo list">Delete Todo List</a></li>
+        {% endif %}
+        {% if perms.main.change_todolist %}
+        <li><a href="/todo/edit/{{list.id}}/"
+            title="Edit this todo list">Edit Todo List</a></li>
+        {% endif %}
+    </ul>
+
+    <p class="todo-info">{{ list.date_added|date }} - {{ list.creator.get_full_name }}</p>
+
+    <div>{{list.description|urlize|linebreaks}}</div>
+
+    <p>Link to lists of pkgbase values:</p>
+    <ul>{% for svn_root in svn_roots %}
+        <li><a href="pkgbases/{{ svn_root }}/">{{ svn_root }}</a></li>
+    {% endfor %}</ul>
+
+    <table id="dev-todo-pkglist" class="results todo-table">
+        <thead>
+            <tr>
+                <th>Arch</th>
+                <th>Repository</th>
+                <th>Name</th>
+                <th>Current Version</th>
+                <th>Maintainers</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pkg in list.packages %}
+            <tr class="{% cycle 'odd' 'even' %}">
+                <td>{{ pkg.pkg.arch.name }}</td>
+                <td>{{ pkg.pkg.repo.name|capfirst }}</td>
+                <td>{% pkg_details_link pkg.pkg %}</td>
+                {% if pkg.pkg.flag_date %}
+                <td><span class="flagged">{{ pkg.pkg.full_version }}</span></td>
+                {% else %}
+                <td>{{ pkg.pkg.full_version }}</td>
+                {% endif %}
+                <td>{{ pkg.pkg.maintainers|join:', ' }}</td>
+                <td>
+                    {% if perms.main.change_todolistpkg %}
+                    {% if pkg.complete %}
+                    <a href="/todo/flag/{{ list.id }}/{{ pkg.id }}/"
+                        class="status-link complete" title="Toggle completion status">Complete</a>
+                    {% else %}
+                    <a href="/todo/flag/{{ list.id }}/{{ pkg.id }}/"
+                        class="status-link incomplete" title="Toggle completion status">Incomplete</a>
+                    {% endif %}
+                    {% else %}
+                    {% if pkg.complete %}<span class="complete">Complete</span>{% else %}<span class="incomplete">Incomplete</span>{% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "jquery.tablesorter.min.js" %}"></script>
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $('a.status-link').click(todolist_flag);
+    $(".results").tablesorter({
+        widgets: ['zebra'],
+        sortList: [[2,0], [0,0]],
+        headers: { 5: { sorter: 'todostatus' } }
+    });
+});
+</script>
+{% endblock %}

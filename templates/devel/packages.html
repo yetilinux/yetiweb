@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% load attributes %}
+{% load package_extras %}
+
+{% block title %}Arch Linux - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="box">
+    <h2>{{ title }}{% if maintainer %},
+        maintained by {{ maintainer.get_full_name }}{% endif%}</h2>
+    <p>{{ packages|length }} package{{ packages|pluralize }} found.
+    {% if maintainer %}This report only includes packages maintained by
+    {{ maintainer.get_full_name }} ({{ maintainer.username }}).{% endif %}
+    </p>
+    <table class="results">
+        <thead>
+            <tr>
+                <th>Arch</th>
+                <th>Repo</th>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Description</th>
+                <th>Last Updated</th>
+                <th>Build Date</th>
+                <th>Flag Date</th>
+                {% for name in column_names %}
+                <th>{{ name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for pkg in packages %}
+            <tr class="{% cycle pkgr2,pkgr1 %}">
+                <td>{{ pkg.arch.name }}</td>
+                <td>{{ pkg.repo.name|capfirst }}</td>
+                <td>{% pkg_details_link pkg %}</td>
+                {% if pkg.flag_date %}
+                <td><span class="flagged">{{ pkg.full_version }}</span></td>
+                {% else %}
+                <td>{{ pkg.full_version }}</td>
+                {% endif %}
+                <td class="wrap">{{ pkg.pkgdesc }}</td>
+                <td>{{ pkg.last_update|date }}</td>
+                <td>{{ pkg.build_date|date }}</td>
+                <td>{{ pkg.flag_date|date }}</td>
+                {% for attr in column_attrs %}
+                <td>{{ pkg|attribute:attr }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "jquery.tablesorter.min.js" %}"></script>
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".results").tablesorter({widgets: ['zebra']});
+});
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block title %}Arch Linux - News: {% if form.instance.id %}Edit{% else %}Add{% endif %} Article{% endblock %}
+
+{% block content %}
+<div id="news-add-article" class="box">
+
+    {% if form.instance.id %}
+    <h2>News: Edit Article</h2>
+    {% else %}
+    <h2>News: Add Article</h2>
+    {% endif %}
+    <p>News articles are formatted using
+    <a href="http://daringfireball.net/projects/markdown/syntax">Markdown syntax</a>.
+    Please use this syntax if at all possible over raw HTML, which can be used
+    if Markdown doesn't support what you would like to do. Before posting, you
+    are highly encouraged to use the <strong>Preview</strong> button to check
+    your work.  Javascript must be enabled to use it, but it will render the
+    news item exactly as it will appear on the news view page.</p>
+    <form id="newsform" method="post">{% csrf_token %}
+        <fieldset>
+            {{ form.as_p }}
+        </fieldset>
+        <p>
+        <label></label>
+        <input title="Save changes" type="submit" value="Save" />
+        <input id="news-preview-button" title="Preview" type="button" value="Preview" />
+        </p>
+    </form>
+</div>
+
+<div id="news-preview" class="news-article box" style="display:none;">
+    <h2>News Preview: <span id="news-preview-title"></span></h2>
+    <div id="news-preview-data" class="article-content"></div>
+</div>
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(enablePreview);
+</script>
+{% endblock %}

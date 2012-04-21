@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Arch Linux - Delete News{% endblock %}
+
+{% block content %}
+<div id="news-delete-entry" class="box">
+
+    <h2>News: Delete Entry Confirmation</h2>
+
+    <p>You are about to delete the following news item:</p>
+
+    <blockquote>
+        <strong>{{news}}</strong>
+    </blockquote>
+
+    <p>Are you sure?</p>
+
+    <form method="post">{% csrf_token %}
+        <input title="Delete this article" id="delete" name="delete"
+        type="submit" value="Delete" /></p>
+    </form>
+
+</div>
+{% endblock %}

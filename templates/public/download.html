@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load cache %}
+{% load url from future %}
+{% load static from staticfiles %}
+
+{% block title %}Arch Linux - Downloads{% endblock %}
+{% block navbarclass %}anb-download{% endblock %}
+
+{% block content %}
+<div id="arch-downloads" class="box">
+
+    <h2>Arch Linux Downloads</h2>
+
+    {% with "2011.08.19" as version %}
+    <h3>Release Info</h3>
+
+    <p>All available images can be burned to a CD, mounted as an ISO file,
+    or be directly written to a USB stick using a utility like `dd`. These
+    are intended for new installations only; an existing Arch Linux system
+    can always be updated with `pacman -Syu`.</p>
+
+    <ul>
+        <li><strong>Current Release:</strong> <a href="https://wiki.archlinux.org/index.php/DeveloperWiki:{{ version }}">{{ version }}</a></li>
+        <li><strong>Included Kernel:</strong> 3.0.3</li>
+        <li><strong>Resources:</strong>
+            <ul>
+                <li><a href="https://bugs.archlinux.org/index.php?project=6"
+                    title="Arch Linux Bugtracker:Release Engineering">Bug Tracker</a></li>
+                <li><a href="https://mailman.archlinux.org/mailman/listinfo/arch-releng"
+                    title="Arch Linux Release Engineering mailing list">Mailing List</a></li>
+            </ul>
+        </li>
+    </ul>
+
+    <p><strong>Links and Instructions:</strong></p>
+
+    <ul id="download-help">
+        <li><a href="https://www.archlinux.org/iso/{{ version }}/README"
+            title="Official download instructions">Readme and Instructions</a></li>
+        <li><a href="https://wiki.archlinux.org/index.php/Official_Arch_Linux_Install_Guide"
+            title="Official Installation Guide">Arch Linux Install Guide</a></li>
+    </ul>
+
+    <h3>Existing Arch Users</h3>
+
+    <p>If you are an existing Arch user, there is no need to download a new ISO
+    to update your existing system. You may be looking for
+    <a href="{% url 'mirrorlist' %}">an updated mirrorlist</a> instead.</p>
+
+    <h3>BitTorrent Download (recommended)</h3>
+
+    <p>If you can spare the bytes, please leave the client open after your
+    download is finished, so you can seed it back to others.
+    <em>A web-seed capable client is recommended for fastest download speeds.</em></p>
+
+    <table id="download-torrents" class="pretty1">
+        <thead>
+            <tr>
+                <th>Format</th>
+                <th class="cpu-arch">i686 CPU</th>
+                <th class="cpu-arch">x86-64 CPU</th>
+                <th class="cpu-arch">Dual Architecture</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    Netinstall Image
+                </td><td class="cpu-arch">
+                    <a href="https://www.archlinux.org/iso/{{version}}/archlinux-{{version}}-netinstall-i686.iso.torrent" 
+                        title="Download for i686 architecture">Download</a>
+                </td><td class="cpu-arch">
+                    <a href="https://www.archlinux.org/iso/{{version}}/archlinux-{{version}}-netinstall-x86_64.iso.torrent" 
+                    title="Download for x86-64 architecture">Download</a>
+                </td><td class="cpu-arch">
+                    <a href="https://www.archlinux.org/iso/{{version}}/archlinux-{{version}}-netinstall-dual.iso.torrent" 
+                    title="Download for both architectures">Download</a>
+                </td><td class="wrap">
+                    Downloads and installs packages versions via FTP for absolute freshness.
+                </td>
+            </tr><tr>
+                <td>
+                    Core Image
+                </td><td class="cpu-arch">
+                    <a href="https://www.archlinux.org/iso/{{version}}/archlinux-{{version}}-core-i686.iso.torrent" 
+                    title="Download for i686 architecture">Download</a>
+                </td><td class="cpu-arch">
+                    <a href="https://www.archlinux.org/iso/{{version}}/archlinux-{{version}}-core-x86_64.iso.torrent" 
+                    title="Download for x86-64 architecture">Download</a>
+                </td><td class="cpu-arch">
+                    <a href="https://www.archlinux.org/iso/{{version}}/archlinux-{{version}}-core-dual.iso.torrent" 
+                    title="Download for both architectures">Download</a>
+                </td><td class="wrap">
+                    Core packages are included on the media. Good for basic off-line installation.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Get Arch Linux on CD</h3>
+
+    <p>The following suppliers donate a portion of their proceeds to the
+    Arch Linux project:</p>
+
+    <ul id="cd-vendors-donate">
+        <li><a href="http://www.osdisc.com/cgi-bin/view.cgi/products/linux/arch?affiliate=archlinux"
+            title="Purchase a CD from OSDisc">Purchase a CD from OSDisc</a></li>
+        <li><a href="http://www.shoplinuxonline.com/index.php?main_page=index&amp;cPath=1_46&amp;zenid=ecd15b48affe8976130bc575c1276ee4"
+            title="Purchase a CD from Shop Linux Online">Purchase a CD from Shop Linux Online</a></li>
+    </ul>
+
+    <p>Arch Linux CDs are also available for purchase from these suppliers:</p>
+
+    <ul id="cd-vendors">
+        <li><a href="http://www.linuxcd.org/view_distro.php?id_distro=48" 
+            title="Purchase a CD from LinuxCD">Purchase a CD from LinuxCD</a></li>
+    </ul>
+
+    <h3>Test ISO Info</h3>
+
+    <p>We provide daily snapshot ISOs. Those are largely untested,
+    but may be more up to date than the releases.</p>
+    <ul>
+        <li><a href="{{ releng_iso_url }}"
+            title="Release Engineering ISO download">Download snapshots</a></li>
+        <li><a href="{{ releng_pxeboot_url }}"
+            title="Arch Linux Netboot Live System">Boot latest snapshots over the network</a>
+        <img width="16" height="16" src="{% static "new.png" %}" alt="New"/></li>
+        <li><a href="{% url 'releng-test-overview' %}"
+            title="Release Engineering ISO feedback">Feedback</a></li>
+    </ul>
+
+    <h3>HTTP/FTP Direct Downloads</h3>
+
+    <p>In addition to the BitTorrent links above, install images can also be
+    downloaded via HTTP or FTP from the mirror sites listed below. Please
+    ensure the download image matches the checksum from the md5sums.txt or
+    sha1sums.txt file in the same directory as the image.</p>
+
+    <h4>Checksums</h4>
+
+    <p>File integrity checksums for the latest releases can be found below:</p>
+
+    <ul>
+        <li><a href="https://www.archlinux.org/iso/{{version}}/sha1sums.txt" 
+            title="Get the latest SHA1 checksums">SHA1 checksums</a></li>
+        <li><a href="https://www.archlinux.org/iso/{{version}}/md5sums.txt" 
+            title="Get the latest MD5 checksums">MD5 checksums</a></li>
+    </ul>
+
+    {% cache 600 download-mirrors %}
+    <table id="download-mirrors">
+        <thead>
+            <tr>
+                <th><h4>Server Location</h4></th>
+                <th><h4>Download</h4></th>
+            </tr>
+        </thead> 
+        <tbody>
+            <tr><td colspan="2">
+                    {% for mirror_url in mirror_url_list %}
+                    {% ifchanged mirror_url.mirror.country %}
+            </td></tr>
+            <tr><td class="mirror-country" colspan="2"><strong>{{mirror_url.mirror.country}}</strong>
+                    {% endifchanged %}
+                    {% ifchanged mirror_url.mirror.name %}
+            </td></tr>
+            <tr><td class="mirror-server">{{mirror_url.mirror.name}}</td><td>
+                    {% endifchanged %}
+                    <a href="{{mirror_url.url}}iso/{{ version }}/"
+                        title="Download from {{mirror_url.url}}">{{mirror_url.protocol.protocol|upper}}</a>
+                    {% endfor %}
+            </td></tr>
+        </tbody>
+    </table>
+    {% endcache %}
+    {% endwith %}
+
+    <p>If you want to become an Official Arch Linux Mirror please follow the
+    instructions listed <a href="https://wiki.archlinux.org/index.php/DeveloperWiki:NewMirrors">here</a>.</p>
+
+</div>
+{% endblock %}

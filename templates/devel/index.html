@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% load cache %}
+{% load package_extras %}
+
+{% block title %}Arch Linux - Developer Dashboard{% endblock %}
+
+{% block content %}
+<div id="dev-dashboard" class="box">
+
+    <h2>Developer Dashboard</h2>
+
+    <h3>My Flagged Packages</h3>
+
+    <table id="dash-myflagged" class="results">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Testing Version</th>
+                <th>Repo</th>
+                <th>Arch</th>
+                <th>Flagged</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pkg in flagged %}
+                <tr class="{% cycle 'odd' 'even' %}">
+                    <td>{% pkg_details_link pkg %}</td>
+                    <td>{{ pkg.full_version }}</td>
+                    <td>{% with pkg.in_testing as tp %}{% if tp %}
+                        <a href="{{ tp.get_absolute_url }}"
+                            title="Testing package details for {{ tp.pkgname }}">{{ tp.full_version }}</a>
+                        {% endif %}{% endwith %}</td>
+                    <td>{{ pkg.repo.name }}</td>
+                    <td>{{ pkg.arch.name }}</td>
+                    <td>{{ pkg.flag_date|date }}</td>
+                    <td>{{ pkg.last_update|date }}</td>
+                </tr>
+            {% empty %}
+                <tr class="empty"><td colspan="6"><em>No flagged packages to display</em></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>My Incomplete Todo List Packages</h3>
+
+    <table id="dash-mytodolist" class="results">
+        <thead>
+            <tr>
+                <th>Todo List</th>
+                <th>Name</th>
+                <th>Repo</th>
+                <th>Arch</th>
+                <th>Maintainer(s)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for todopkg in todopkgs %}
+                <tr class="{% cycle 'odd' 'even' %}">
+                    <td><a href="{{ todopkg.list.get_absolute_url }}"
+                            title="View todo list: {{ todopkg.list.name }}">{{ todopkg.list.name }}</a></td>
+                    <td>{% pkg_details_link todopkg.pkg %}</td>
+                    <td>{{ todopkg.pkg.repo.name }}</td>
+                    <td>{{ todopkg.pkg.arch.name }}</td>
+                    <td>{{ todopkg.pkg.maintainers|join:', ' }}</td>
+                </tr>
+            {% empty %}
+                <tr class="empty"><td colspan="5"><em>No incomplete todo list packages to display</em></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Package Todo Lists</h3>
+
+    <table id="dash-todo" class="results">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Creation Date</th>
+                <th>Creator</th>
+                <th>Description</th>
+                <th>Package Count</th>
+                <th>Incomplete Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for todo in todos %}
+            <tr class="{% cycle 'odd' 'even' %}">
+                <td><a href="{{ todo.get_absolute_url }}"
+                        title="View todo list: {{ todo.name }}">{{ todo.name }}</a></td>
+                <td>{{ todo.date_added|date }}</td>
+                <td>{{ todo.creator.get_full_name }}</td>
+                <td class="wrap">{{ todo.description|urlize }}</td>
+                <td>{{ todo.pkg_count }}</td>
+                <td>{{ todo.incomplete_count }}</td>
+            </tr>
+            {% empty %}
+            <tr class="empty"><td colspan="6"><em>No package todo lists to display</em></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Signoff Status</h3>
+
+    <table id="dash-signoffs" class="results">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Arch</th>
+                <th>Target Repo</th>
+                <th>Last Updated</th>
+                <th>Approved</th>
+                <th>Signoffs</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in signoffs %}
+            <tr class="{% cycle 'odd' 'even' %}">
+                <td>{% pkg_details_link group.package %}</td>
+                <td>{{ group.version }}</td>
+                <td>{{ group.arch.name }}</td>
+                <td>{{ group.target_repo }}</td>
+                <td>{{ group.last_update|date }}</td>
+                {% if group.specification.known_bad %}
+                <td class="approval signoff-bad">Bad</td>
+                {% else %}
+                {% if not group.specification.enabled %}
+                <td class="approval signoff-disabled">Disabled</td>
+                {% else %}
+                <td class="approval signoff-{{ group.approved|yesno }}">{{ group.approved|yesno|capfirst }}</td>
+                {% endif %}
+                {% endif %}
+                <td><ul class="signoff-list">
+                    {% for signoff in group.signoffs %}
+                    <li class="signed-username" title="Signed off by {{ signoff.user }}">{{ signoff.user }}{% if signoff.revoked %} (revoked){% endif %}</li>
+                    {% endfor %}
+                </ul></td>
+            </tr>
+            {% empty %}
+            <tr class="empty"><td colspan="7"><em>No packages you maintain or have packaged need signoffs</em></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Developer Reports</h3>
+    <ul>
+        <li><a href="reports/old/">Old</a>:
+        Packages last built more than one year ago
+        (<a href="reports/old/{{ user.username }}/">yours only</a>)</li>
+        <li><a href="reports/long-out-of-date/">Long Out-of-date</a>:
+        Packages marked out-of-date more than 90 days ago
+        (<a href="reports/long-out-of-date/{{ user.username }}/">yours only</a>)</li>
+        <li><a href="reports/uncompressed-man/">Uncompressed Manpages</a>:
+        Self-explanatory
+        (<a href="reports/uncompressed-man/{{ user.username }}/">yours only</a>)</li>
+        <li><a href="reports/uncompressed-info/">Uncompressed Info Pages</a>:
+        Self-explanatory
+        (<a href="reports/uncompressed-info/{{ user.username }}/">yours only</a>)</li>
+        <li><a href="reports/mismatched-signature/">Mismatched Signatures</a>:
+        Packages where 1) signing key is unknown, 2) signer != packager, or 3) signature timestamp more than 24 hours after build timestamp
+        (<a href="reports/mismatched-signature/{{ user.username }}/">yours only</a>)</li>
+        <li><a href="reports/big/">Big</a>:
+        All packages with compressed size &gt; 50 MiB
+        (<a href="reports/big/{{ user.username }}/">yours only</a>)</li>
+        <li><a href="reports/badcompression/">Bad Compression</a>:
+        Packages with a compression ratio of less than 10%
+        (<a href="reports/badcompression/{{ user.username }}/">yours only</a>)</li>
+        <li><a href="reports/unneeded-orphans/">Unneeded Orphans</a>:
+        Packages that have no maintainer and are not required by any other
+        package in any repository</li>
+    </ul>
+
+</div><!-- #dev-dashboard -->
+
+{% cache 60 dev-dash-by-arch %}
+<div id="dash-by-arch" class="box">
+
+    <h2>Stats by Architecture</h2>
+
+    <table id="stats-by-arch" class="results dash-stats">
+        <thead>
+            <tr>
+                <th class="key">Arch</th>
+                <th># Packages</th>
+                <th># Flagged</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arch in arches %}
+                <tr class="{% cycle 'odd' 'even' %}">
+                    <td>{{ arch.name }}</td>
+                    <td><a href="/packages/?arch={{ arch.name }}"
+                            title="View all packages for the {{ arch.name }} architecture">
+                            <strong>{{ arch.packages.count }}</strong> packages</a></td>
+                    <td><a href="/packages/?arch={{ arch.name }}&amp;flagged=Flagged"
+                            title="View all flagged packages for the {{ arch.name }} architecture">
+                            <strong>{{ arch.packages.flagged.count }}</strong> packages</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>{# #dash-by-arch #}
+{% endcache %}
+
+{% cache 60 dev-dash-by-repo %}
+<div id="dash-by-repo" class="box">
+
+    <h2>Stats by Repository</h2>
+
+    <table id="stats-by-repo" class="results dash-stats">
+        <thead>
+            <tr>
+                <th class="key">Repository</th>
+                <th># Packages</th>
+                <th># Flagged</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for repo in repos %}
+                <tr class="{% cycle 'odd' 'even' %}">
+                    <td>{{ repo.name }}</td>
+                    <td><a href="/packages/?repo={{ repo.name }}"
+                            title="View all packages in the {{ repo.name }} repository">
+                            <strong>{{ repo.packages.count }}</strong> packages</a></td>
+                    <td><a href="/packages/?repo={{ repo.name }}&amp;flagged=Flagged"
+                            title="View all flagged packages in the {{ repo.name }} repository">
+                            <strong>{{ repo.packages.flagged.count }}</strong> packages</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>{# dash-by-arch #}
+{% endcache %}
+
+{% cache 60 dev-dash-by-developer %}
+<div id="dash-by-developer" class="box">
+
+    <h2>Stats by Developer</h2>
+
+    {% if perms.main.change_package %}
+    <p><a href="/packages/stale_relations/">Look for stale relations</a></p>
+    {% endif %}
+
+    <table id="stats-by-maintainer" class="results dash-stats">
+        <thead>
+            <tr>
+                <th class="key">Maintainer</th>
+                <th># Maintained</th>
+                <th># Flagged</th>
+                <th># Last Packager</th>
+            </tr>
+            <tr class="even">
+                <td><em>Orphan/Unknown</em></td>
+                <td><a href="/packages/?maintainer=orphan"
+                        title="View all orphan packages">
+                        <strong>{{ orphan.package_count }}</strong> packages</a>
+                </td>
+                <td><a href="/packages/?maintainer=orphan&amp;flagged=Flagged"
+                        title="View all flagged orphan packages">
+                        <strong>{{ orphan.flagged_count }}</strong> packages</a>
+                </td>
+                <td><a href="/packages/?packager=unknown"
+                        title="View all packages last updated by unknown">
+                        <strong>{{ orphan.updated_count }}</strong> packages</a>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for maint in maintainers %}
+                <tr class="{% cycle 'odd' 'even' %}">
+                    <td>{{ maint.get_full_name }}</td>
+                    <td><a href="/packages/?maintainer={{ maint.username }}"
+                            title="View all packages maintained by {{ maint.get_full_name }}">
+                            <strong>{{ maint.package_count }}</strong> packages</a>
+                    </td>
+                    <td><a href="/packages/?maintainer={{ maint.username }}&amp;flagged=Flagged"
+                            title="View all flagged packages maintained by {{ maint.get_full_name }}">
+                            <strong>{{ maint.flagged_count }}</strong> packages</a>
+                    </td>
+                    <td><a href="/packages/?packager={{ maint.username }}"
+                            title="View all packages last updated by {{ maint.get_full_name }}">
+                            <strong>{{ maint.updated_count }}</strong> packages</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>{# #dash-by-developer #}
+{% endcache %}
+
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "jquery.tablesorter.min.js" %}"></script>
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#dash-myflagged:not(:has(tbody tr.empty))").tablesorter(
+        {widgets: ['zebra'], sortList: [[0,0]]});
+    $("#dash-mytodolist:not(:has(tbody tr.empty))").tablesorter(
+        {widgets: ['zebra'], sortList: [[0,0], [1,0]]});
+    $("#dash-todo:not(:has(tbody tr.empty))").tablesorter(
+            {widgets: ['zebra'], sortList: [[1,1]]});
+    $("#dash-signoffs:not(:has(tbody tr.empty))").tablesorter({
+            widgets: ['zebra'],
+            sortList: [[0,0]],
+            headers: { 6: {sorter: false } }
+    });
+    $(".dash-stats").tablesorter({
+        widgets: ['zebra'],
+        sortList: [[0,0]],
+        headers: { 1: { sorter: 'pkgcount' }, 2: { sorter: 'pkgcount' }, 3: { sorter: 'pkgcount' } }
+    });
+});
+</script>
+{% endblock %}

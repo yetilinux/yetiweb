@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% load package_extras %}
+
+{% block title %}Arch Linux - {{ name }} ({{ arch.name }}) - {{ list_title }}{% endblock %}
+{% block navbarclass %}anb-packages{% endblock %}
+
+{% block content %}
+<div class="box">
+    <h2>{{ list_title }} - {{ name }} ({{ arch.name }})</h2>
+    <p>{{ packages|length }} package{{ packages|pluralize }} found.</p>
+    <table class="results">
+        <thead>
+            <tr>
+                <th>Arch</th>
+                <th>Repo</th>
+                <th>Name</th>
+                <th>Version</th>
+                <th>Description</th>
+                <th>Last Updated</th>
+                <th>Flag Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pkg in packages %}
+            <tr class="{% cycle 'odd' 'even' %}">
+                <td>{{ pkg.arch.name }}</td>
+                <td>{{ pkg.repo.name|capfirst }}</td>
+                <td>{% pkg_details_link pkg %}</td>
+                {% if pkg.flag_date %}
+                <td><span class="flagged">{{ pkg.full_version }}</span></td>
+                {% else %}
+                <td>{{ pkg.full_version }}</td>
+                {% endif %}
+                <td class="wrap">{{ pkg.pkgdesc }}</td>
+                <td>{{ pkg.last_update|date }}</td>
+                <td>{{ pkg.flag_date|date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "jquery.tablesorter.min.js" %}"></script>
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".results").tablesorter({widgets: ['zebra'], sortList: [[2,0]]});
+});
+</script>
+{% endblock %}

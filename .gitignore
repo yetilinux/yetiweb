@@ -1,4 +1,8 @@
-*.log
-*.pot
 *.pyc
+*.swp
+*.swo
 local_settings.py
+archweb.db
+archweb.db-*
+collected_static/
+testing/

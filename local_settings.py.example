@@ -1,0 +1,56 @@
+### Django settings for archlinux project.
+
+## Debug settings
+DEBUG = False
+TEMPLATE_DEBUG = False
+#DEBUG_TOOLBAR = True
+
+## For django debug toolbar
+INTERNAL_IPS = ('127.0.0.1',)
+
+## Notification admins
+ADMINS = (
+   # ('Joe Admin', 'joeadmin@example.com'),
+)
+
+## PostgreSQL Database settings
+DATABASES = {
+    'default': {
+        'ENGINE'  : 'django.db.backends.postgresql_psycopg2',
+        'NAME'    : 'archlinux',
+        'USER'    : 'archlinux',
+        'PASSWORD': 'archlinux',
+        'HOST'    : '',
+        'PORT'    : '',
+    },
+}
+
+## Define cache settings
+CACHES = {
+    'default': {
+        'BACKEND' : 'django.core.cache.backends.dummy.DummyCache',
+        #'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
+        #'LOCATION': '127.0.0.1:11211',
+    }
+}
+CACHE_MIDDLEWARE_KEY_PREFIX = 'arch'
+CACHE_MIDDLEWARE_SECONDS = 300
+
+## Use secure session cookies? Make this true if you want all
+## logged-in actions to take place over HTTPS only. If developing
+## locally, you will want to use False.
+SESSION_COOKIE_SECURE = False
+
+## location for saving dev pictures
+MEDIA_ROOT = '/srv/example.com/img/'
+
+## web url for serving image files
+MEDIA_URL = '/media/img/'
+
+## Make this unique, and don't share it with anybody.
+SECRET_KEY = '00000000000000000000000000000000000000000000000'
+
+## CDN settings
+CDN_ENABLED = False
+
+# vim: set ts=4 sw=4 et:

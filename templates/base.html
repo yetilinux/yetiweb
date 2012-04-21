@@ -1,0 +1,86 @@
+{% load url from future %}{% load static from staticfiles %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% block title %}Arch Linux{% endblock %}</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="{% static "archweb.css" %}" media="screen, projection" />
+    <link rel="stylesheet" type="text/css" href="{% static "archweb-print.css" %}" media="print" />
+    <link rel="icon" type="image/x-icon" href="{% static "favicon.ico" %}" />
+    <link rel="shortcut icon" type="image/x-icon" href="{% static "favicon.ico" %}" />
+    <link rel="apple-touch-icon" href="{% static "logos/apple-touch-icon-57x57.png" %}" />
+    <link rel="apple-touch-icon" sizes="72x72" href="{% static "logos/apple-touch-icon-72x72.png" %}" />
+    <link rel="apple-touch-icon" sizes="114x114" href="{% static "logos/apple-touch-icon-114x114.png" %}" />
+    <link rel="search" type="application/opensearchdescription+xml" href="{% url 'opensearch-packages' as osp %}{{ osp }}" title="Arch Linux Packages" />
+    {% block head %}{% endblock %}
+</head>
+<body class="{% if user.is_authenticated %}devmode {% endif %}{% block bodyclass %}{% endblock %}">
+    <div id="archnavbar" class="{% block navbarclass %}anb-home{% endblock %}">
+        <div id="archnavbarlogo"><h1><a href="/" title="Return to the main page">Arch Linux</a></h1></div>
+        <div id="archnavbarmenu">
+            <ul id="archnavbarlist">
+                <li id="anb-home"><a href="/" title="Arch news, packages, projects and more">Home</a></li>
+                <li id="anb-packages"><a href="/packages/" title="Arch Package Database">Packages</a></li>
+                <li id="anb-forums"><a href="https://bbs.archlinux.org/" title="Community forums">Forums</a></li>
+                <li id="anb-wiki"><a href="https://wiki.archlinux.org/" title="Community documentation">Wiki</a></li>
+                <li id="anb-bugs"><a href="https://bugs.archlinux.org/" title="Report and track bugs">Bugs</a></li>
+                <li id="anb-aur"><a href="https://aur.archlinux.org/" title="Arch Linux User Repository">AUR</a></li>
+                <li id="anb-download"><a href="{% url 'page-download' as pdl %}{{ pdl }}" title="Get Arch Linux">Download</a></li>
+            </ul>
+        </div>
+    </div>
+    <div id="content">
+        <div id="archdev-navbar">
+            {% if user.is_authenticated %}
+                <ul>
+                    <li><a href="{% url 'devel-index' %}" title="Developer Dashboard">Dashboard</a></li>
+                    <li><a href="https://wiki.archlinux.org/index.php/DeveloperWiki"
+                        title="Developer Wiki">DevWiki</a></li>
+                    <li><a href="{% url 'news-list' as newsl %}{{ newsl }}" title="Manage news articles">News</a></li>
+                    <li><a href="/packages/signoffs/" title="Package signoffs">Signoffs</a></li>
+                    <li><a href="/todo/" title="Developer todo lists">Todos</a></li>
+                    <li><a href="{% url 'devel-clocks' %}" title="Developer world clocks">Dev Clocks</a></li>
+                    <li><a href="https://mailman.archlinux.org/mailman/private/arch-dev/"
+                        title="arch-dev mailing list archives">Archives</a></li>
+                    <li><a href="/mirrors/" title="Mirror server statistics">Mirrors</a></li>
+                    <li><a href="https://stats.archlinux.org/munin/"
+                        title="Arch server monitoring">Server Monitoring</a></li>
+                    {% if user.is_staff %}
+                    <li><a href="{% url 'admin:index' %}" title="Django Admin Interface">Django Admin</a></li>
+                    {% endif %}
+                    <li><a href="/devel/profile/" title="Modify your account profile">Profile</a></li>
+                    <li><a href="/logout/" title="Logout of the developer interface">Logout</a></li>
+                </ul>
+            {% endif %}
+        </div>
+        {% if messages %}
+            <div id="sys-message" class="box">
+                {% for message in messages %}
+                    <p>{{message}}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}
+            <div id="content-left-wrapper">
+                <div id="content-left">
+                    {% block content_left %}{% endblock %}
+                </div>
+            </div>
+            <div id="content-right">
+                {% block content_right %}{% endblock %}
+            </div>
+        {% endblock %}
+        <div id="footer">
+            <p>Copyright &copy; 2002-{% now "Y" %} <a href="mailto:jvinet@zeroflux.org"
+                title="Contact Judd Vinet">Judd Vinet</a> and <a href="mailto:aaron@archlinux.org"
+                title="Contact Aaron Griffin">Aaron Griffin</a>.</p>
+
+            <p>The Arch Linux name and logo are recognized
+            <a href="https://wiki.archlinux.org/index.php/DeveloperWiki:TrademarkPolicy"
+                title="Arch Linux Trademark Policy">trademarks</a>. Some rights reserved.</p>
+
+            <p>The registered trademark Linux® is used pursuant to a sublicense from LMI,
+            the exclusive licensee of Linus Torvalds, owner of the mark on a world-wide basis.</p>
+        </div>
+    </div>
+</body>
+</html>

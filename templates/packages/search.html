@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load package_extras %}
+{% load admin_static %}
+
+{% block title %}Arch Linux - Package Database{% endblock %}
+{% block navbarclass %}anb-packages{% endblock %}
+
+{% block head %}
+{% if is_paginated and page_obj.number > 1 %}<meta name="robots" content="noindex, nofollow"/>{% endif %}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/widgets.css" %}" />
+{% endblock %}
+
+{% block content %}
+<div id="pkglist-search" class="box filter-criteria">
+
+    <h2>Package Database</h2>
+
+    <h3>Package Search</h3>
+
+    <form id="pkg-search" method="get" action="/packages/">
+        <p><input type="hidden" name="sort" value='{{sort}}' /></p>
+        {{ search_form.non_field_errors }}
+        <fieldset>
+            <legend>Enter search criteria</legend>
+            <div>{{ search_form.arch.errors }}
+                <label for="id_arch" title="Limit results a specific CPU architecture">
+                    Arch</label>{{ search_form.arch }}</div>
+            <div>{{ search_form.repo.errors }}
+                <label for="id_repo" title="Limit results to a specific respository">
+                    Repository</label>{{ search_form.repo }}</div>
+            <div>{{ search_form.q.errors }}
+                <label for="id_q" title="Enter keywords as desired">
+                    Keywords</label>{{ search_form.q }}</div>
+            <div>{{ search_form.maintainer.errors }}
+                <label for="id_maintainer" title="Limit results to a specific maintainer">
+                    Maintainer</label>{{ search_form.maintainer}}</div>
+            <div>{{ search_form.last_update.errors }}
+                <label for="id_last_update" title="Limit results to a date after the date entered">
+                    Last Updated After</label>{{ search_form.last_update }}</div>
+            <div>{{ search_form.flagged.errors }}
+                <label for="id_flagged" title="Limit results based on out-of-date status">
+                    Flagged</label>{{ search_form.flagged }}</div>
+            <div>{{ search_form.limit.errors }}
+                <label for="id_limit" title="Select the number of results to display per page">
+                    Per Page</label>{{ search_form.limit }}</div>
+            <div ><label>&nbsp;</label><input title="Search for packages using this criteria"
+                type="submit" value="Search" /></div>
+        </fieldset>
+    </form>
+
+</div><!-- #pkglist-search -->
+
+{% if package_list %}
+<div id="pkglist-results" class="box">
+    {% include "packages/search_paginator.html" %}
+    <form id="pkglist-results-form" method="post" action="/packages/update/">{% csrf_token %}
+
+        <table class="results">
+            <thead>
+                <tr>
+                    {% if perms.main.change_package %}
+                    <th>&nbsp;</th>
+                    {% endif %}
+                    <th><a href="/packages/?{% buildsortqs "arch" %}"
+                            title="Sort packages by architecture">Arch</a></th>
+                    <th><a href="/packages/?{% buildsortqs "repo" %}"
+                            title="Sort packages by repository">Repo</a></th>
+                    <th><a href="/packages/?{% buildsortqs "pkgname" %}"
+                            title="Sort packages by package name">Name</a></th>
+                    <th>Version</th>
+                    <th>Description</th>
+                    <th><a href="/packages/?{% buildsortqs "-last_update" %}"
+                            title="Sort packages by last update">Last Updated</a></th>
+                    <th><a href="/packages/?{% buildsortqs "-flag_date" %}"
+                            title="Sort packages by when marked-out of-date">Flag Date</a></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for pkg in package_list %}
+                {% spaceless %}<tr class="{% cycle 'odd' 'even' %}">
+                    {% if perms.main.change_package %}
+                    <td><input type="checkbox" name="pkgid" value="{{ pkg.id }}" /></td>
+                    {% endif %}
+                    <td>{{ pkg.arch.name }}</td>
+                    <td>{{ pkg.repo.name|capfirst }}</td>
+                    <td>{% pkg_details_link pkg %}</td>
+                    {% if pkg.flag_date %}
+                    <td><span class="flagged">{{ pkg.full_version }}</span></td>
+                    {% else %}
+                    <td>{{ pkg.full_version }}</td>
+                    {% endif %}
+                    <td class="wrap">{{ pkg.pkgdesc }}</td>
+                    <td>{{ pkg.last_update|date }}</td>
+                    <td>{{ pkg.flag_date|date }}</td>
+                </tr>
+            {% endspaceless %}{% endfor %}
+            </tbody>
+        </table>
+        {% include "packages/search_paginator.html" %}
+
+        {% if perms.main.change_package %}
+        <p><input title="Adopt selected packages" type="submit" id="adopt-btn"
+        name="adopt" value="Adopt Packages" />
+        <input title="Orphan selected packages" type="submit" id="disown-btn"
+        name="disown" value="Disown Packages" /></p>
+        {% endif %}
+
+    </form>
+
+</div><!-- #pkglist-results -->
+{% else %}
+<div class="box">
+    <p>We couldn't find any packages matching your query. Try searching again
+    using different criteria, or try
+    {% if search_form.q.data %}
+    <a href="https://aur.archlinux.org/packages.php?K={{ search_form.q.data|urlencode }}">searching the AUR</a>
+    {% else %}searching the AUR{% endif %}
+    to see if the package can be found there.</p>
+</div>
+{% endif %}
+
+<div id="pkglist-about" class="box">
+    <p>You are browsing the Arch Linux package database. From here you can find
+    detailed information about packages located in the official supported repositories.
+    For unsupported packages, browse the <a href="https://aur.archlinux.org/"
+        title="AUR package database">Arch User Repository (AUR).</a></p>
+</div>
+
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="/jsi18n/"></script>
+<script type="text/javascript">
+	window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";
+	var django = {"jQuery": jQuery};
+</script>
+<script type="text/javascript" src="{% static "admin/js/core.js" %}"></script>
+{{search_form.media}}
+{% endblock %}

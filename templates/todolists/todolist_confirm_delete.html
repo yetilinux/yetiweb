@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Arch Linux - Delete Todo List: {{object.name}}{% endblock %}
+
+{% block content %}
+<div id="dev-todo-delete" class="box">
+
+    <h2>Delete Todo List: {{object.name}}</h2>
+
+    <p>You are about to delete the selected todo list:</p>
+
+    <blockquote>
+        <p>{{object.description|safe|linebreaks}}</p>
+    </blockquote>
+
+    <p>Are you sure?</p>
+
+    <form id="delete-todo-form" method="post">{% csrf_token %}
+        <p><input type="submit" value="Delete" /></p>
+    </form>
+
+</div>
+{% endblock %}

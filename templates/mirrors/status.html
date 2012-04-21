@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% load mirror_status %}
+
+{% block title %}Arch Linux - Mirror Status{% endblock %}
+
+{% block content %}
+<div id="mirrorstatus" class="box">
+    <h2>Mirror Status</h2>
+    <p>This page reports the status of all known, public, and active Arch Linux
+    mirrors. All data on this page reflects the status of the mirrors within
+    the <em>last {{ cutoff|hours }}</em>. All listed times are UTC. The check script runs
+    on a regular basis and polls for the <tt>lastsync</tt> file in the root of
+    our repository layout. This file is regularly updated on the central
+    repository, so checking the value within allows one to see if the mirror
+    has synced recently. This page contains several pieces of information about
+    each mirror.</p>
+    <ul>
+        <li><em>Mirror URL:</em> Mirrors are checked on a per-URL basis. If
+        both FTP and HTTP access are provided, both will be listed here.</li>
+        <li><em>Last Sync:</em> The timestamp retrieved from the
+        <tt>lastsync</tt> file on the mirror. If this file could not be
+        retrieved or contained data we didn't recognize, this column will show
+        'unknown'.</li>
+        <li><em>Completion %:</em> The number of mirror checks that have
+        successfully connected and disconnected from the given URL. If this is
+        below 100%, the mirror may be unreliable.</li>
+        <li><em>μ Delay:</em> The calculated average mirroring delay; e.g. the
+        mean value of <tt>last check − last sync</tt> for each check of
+        this mirror URL. Due to the timing of mirror checks, any value under
+        one hour should be viewed as ideal.</li>
+        <li><em>μ Duration:</em> The average (mean) time it took to connect and
+        retrieve the <tt>lastsync</tt> file from the given URL. Note that this
+        connection time is from the location of the Arch server; your geography
+        may product different results.</li>
+        <li><em>σ Duration:</em> The standard deviation of the connect and
+        retrieval time. A high standard deviation can indicate an unstable or
+        overloaded mirror.</li>
+        <li><em>Mirror Score:</em> A very rough calculation for ranking
+        mirrors. It is currently calculated as <tt>(hours delay + average
+            duration + standard deviation) / completion percentage</tt>. Lower
+        is better.</li>
+    </ul>
+    <p>The final table on this page is an error log, which shows any errors
+    that occurred while contacting mirrors. This only shows errors that
+    occurred within the last {{ cutoff|hours }}.</p>
+    <ul>
+        <li><a href="#outofsync">Out of Sync Mirrors</a></li>
+        <li><a href="#successful">Successfully Syncing Mirrors</a></li>
+        <li><a href="#errorlog">Mirror Syncing Error Log</a></li>
+    </ul>
+
+    <p>The last mirror check ran at {{ last_check|date:'Y-m-d H:i' }} UTC.
+    Checks have ran {{ num_checks }} times in the last {{ cutoff|hours }} at
+    an average interval of {{ check_frequency|duration }} (hh:mm).</p>
+
+    <p>This data is also available in <a href="json/">JSON format</a>. The
+    units of all time/duration values are in seconds; date/time values are
+    UTC.</p>
+
+    <a name="outofsync" id="outofsync"></a>
+    <h3>Out of Sync Mirrors</h3>
+    {% with bad_urls as urls %}
+    {% with 'outofsync_mirrors' as table_id %}
+    {% include "mirrors/status_table.html" %}
+    {% endwith %}
+    {% endwith %}
+
+    <a name="successful" id="successful"></a>
+    <h3>Successfully Syncing Mirrors</h3>
+    {% with good_urls as urls %}
+    {% with 'successful_mirrors' as table_id %}
+    {% include "mirrors/status_table.html" %}
+    {% endwith %}
+    {% endwith %}
+
+    <a name="errorlog" id="errorlog"></a>
+    <h3>Mirror Syncing Error Log</h3>
+    <table id="errorlog_mirrors" class="results">
+        <thead>
+            <tr>
+                <th>Mirror URL</th>
+                <th>Protocol</th>
+                <th>Country</th>
+                <th>Error Message</th>
+                <th>Last Occurred</th>
+                <th>Occurrences (last {{ cutoff|hours }})</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in error_logs %}
+            {% spaceless %}<tr class="{% cycle 'odd' 'even' %}">
+                <td>{{ log.url__url }}</td>
+                <td>{{ log.url__protocol__protocol }}</td>
+                <td>{{ log.country }}</td>
+                <td>{{ log.error }}</td>
+                <td>{{ log.last_occurred|date:'Y-m-d H:i' }}</td>
+                <td>{{ log.error_count }}</td>
+            </tr>
+            {% endspaceless %}{% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% load cdn %}{% jquery %}
+<script type="text/javascript" src="{% static "jquery.tablesorter.min.js" %}"></script>
+<script type="text/javascript" src="{% static "archweb.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    var headers = { 5: { sorter: 'duration' }, 6: { sorter: 'mostlydigit' }, 7: { sorter: 'mostlydigit' }, 8: { sorter: 'mostlydigit' } };
+    $("#outofsync_mirrors:has(tbody tr)").tablesorter(
+        {widgets: ['zebra'], sortList: [[3,1]], headers: headers });
+    $("#successful_mirrors:has(tbody tr)").tablesorter(
+        {widgets: ['zebra'], sortList: [[8,0]], headers: headers });
+    $("#errorlog_mirrors:has(tbody tr)").tablesorter(
+        {widgets: ['zebra'], sortList: [[4,1], [5,1]]});
+});
+</script>
+{% endblock %}
